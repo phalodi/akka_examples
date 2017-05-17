@@ -2,14 +2,15 @@
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.{Actor, Props, Terminated}
-import akka.routing.{RoutingLogic, ActorRefRoutee, RoundRobinRoutingLogic, Router}
+import akka.routing._
 
 case object WorkMessage
+
 case object Report
 
-class RouterActor(val routingLogic : RoutingLogic)  extends Actor  {
+class RouterActor(val routingLogic: RoutingLogic) extends Actor {
 
-  val counter : AtomicInteger = new AtomicInteger()
+  val counter: AtomicInteger = new AtomicInteger()
 
   val routees = Vector.fill(5) {
     val workerCount = counter.getAndIncrement()
@@ -38,16 +39,12 @@ class RouterActor(val routingLogic : RoutingLogic)  extends Actor  {
   }
 }
 
-import java.util.concurrent.TimeUnit
-
 import akka.actor._
-import akka.routing._
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration._
-import scala.language.postfixOps
-import scala.io.StdIn
 
-object Demo extends App {
+import scala.io.StdIn
+import scala.language.postfixOps
+
+object AkkaRouting extends App {
 
   //==============================================================
   //Standard Actor that does routing using Router class
@@ -56,11 +53,10 @@ object Demo extends App {
   //the Router, where we monitor the routees and remove /recreate
   //them on 'Terminated'
   //==============================================================
-  RunRoutingDemo(RoundRobinRoutingLogic())
+  RunRoutingDemo(RandomRoutingLogic())
 
 
-
-  def RunRoutingDemo(routingLogic : RoutingLogic) : Unit = {
+  def RunRoutingDemo(routingLogic: RoutingLogic): Unit = {
     val system = ActorSystem("RoutingSystem")
     val actorRef = system.actorOf(Props(
       new RouterActor(routingLogic)), name = "theRouter")
@@ -78,7 +74,7 @@ object Demo extends App {
 
 import akka.actor.Actor
 
-class WorkerActor(val id : Int) extends Actor {
+class WorkerActor(val id: Int) extends Actor {
 
   var msgCount = 0
   val actName = self.path.name
@@ -91,6 +87,6 @@ class WorkerActor(val id : Int) extends Actor {
     case Report => {
       println(s"worker : {$id}, name : ($actName) ->  saw total messages : ($msgCount)")
     }
-    case _       => println("unknown message")
+    case _ => println("unknown message")
   }
 }
